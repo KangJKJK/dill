@@ -9,7 +9,8 @@ NC='\033[0m' # No Color
 echo -e "${GREEN}Dill 노드 설치를 시작합니다.${NC}"
 
 # 파일 경로 설정
-FILE_PATH="/root/dill/validator_keys"
+DIRECTORY="/root/dill/validator_keys"
+FILE_PATTERN="deposit_data-*.json"
 
 # 현재 디렉토리 설정
 _ROOT="$(pwd)" && cd "$(dirname "$0")" && ROOT="$(pwd)"
@@ -93,8 +94,9 @@ function add_validator() {
 }
 
 # 사용자에게 선택지 제공
+read -p "${RED}입금주소와 출금주소는 같아야 편합니다. 설치진행 전에 하나의 wallet을 준비해두세요"
 while true; do
-    read -p "원하는 작업을 선택하세요 [1, 새로운 dill 노드 실행, 2, 기존 노드에 검증자 추가] [1]: " purpose
+    read -p "${YELLOW}원하는 작업을 선택하세요 [1. 새로운 dill 노드 실행 2. 기존 노드에 검증자 추가] [1]${NC}: " purpose
     purpose=${purpose:-1}  # 기본값으로 1 설정
     case "$purpose" in
         "1")
@@ -113,6 +115,7 @@ while true; do
 done
 
 # Faucet 받기
+echo -e "${GREEN}Faucet 작업을 시작합니다.${NC}"
 echo -e "${YELLOW}Galxe 퀘스트를 완료하여 Dsicord Role을 획득하세요${NC}"
 echo -e "${YELLOW}https://app.galxe.com/quest/Dill/GCgJAtvF1h?referral_code=GRFr2Jksp6m_3iKpJtfBbCz3bX1f64ar8En8fAfyI8cPWs9${NC}"
 read -p "${GREEN}Galxe 퀘스트를 완료하셨습니까? (계속하려면 엔터를 누르세요)"
@@ -121,23 +124,30 @@ echo -e "${YELLOW}Dsicord 내부의 'alps'채널로 이동하여 Faucet을 받�
 echo -e "${YELLOW}https://discord.gg/dill${NC}"
 read -p "${GREEN}Faucet을 받으셨으면 엔터를 누르세요"
 
-# 파일 내용 출력 및 안내문구 표시
-if [ -f "$FILE_PATH" ]; then
-    echo "다음은 $FILE_PATH 파일의 내용입니다:"
+# 파일 존재 여부 확인 및 출력
+if [ -f "$DEPOSIT_FILE" ]; then
+    echo "다음은 $DEPOSIT_FILE 파일의 내용입니다.(디파짓월렛):"
     echo "--------------------------------------------"
-    cat "$FILE_PATH"  # 파일 내용 출력
+    cat "$DEPOSIT_FILE"  # 파일 내용 출력
     echo "--------------------------------------------"
     echo ""
     echo "위 내용을 모두 복사하세요."
-    read -p "모두 복사한 후, 계속하려면 엔터를 누르세요..."
+    read -p "모두 복사한 후 계속하려면 엔터를 누르세요."
 else
-    echo "파일을 찾을 수 없습니다: $FILE_PATH"
+    echo "해당 파일을 찾을 수 없습니다: $FILE_PATTERN"
     exit 1
 fi
 
+# 검증자 되기
+echo -e "${GREEN}검증자가 되는 작업을 시작합니다.${NC}"
 echo -e "${YELLOW}해당사이트에 접속하여 'Upload deposit data'에 위 내용을 모두 복사하여 붙여넣으세요.${NC}"
 echo -e "${YELLOW}https://staking.dill.xyz/${NC}"
-read -p "${GREEN}트랜잭션까지 진행한 후 엔터를 누르세요"
+read -p "${GREEN}내용을 모두 넣으신 다음 다음을 누르세요"
 
+echo -e "${YELLOW}설정한 wallet과 동일한 메타마스크를 사용하여 지갑을 연결하세요.${NC}"
+echo -e "${YELLOW}입급주소와 출금주소가 같다면 체크박스를 클릭하기만하여 확인만 하세요.${NC}"
+read -p "${GREEN}SEND DEPOSIT을 클릭하시고 엔터를 누르세요."
+
+echo -e "${GREEN}검증자 정보는 여기에서 확인할 수 있습니다: https://alps.dill.xyz/validators${NC}"
 echo -e "${GREEN}모든 작업이 완료되었습니다. 컨트롤+A+D로 스크린을 종료해주세요.${NC}"
 echo -e "${GREEN}스크립트 작성자: https://t.me/kjkresearch${NC}"
