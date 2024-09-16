@@ -94,6 +94,7 @@ function add_validator() {
 
 # 사용자에게 선택지 제공
 echo -e "${RED}입금주소와 출금주소는 같아야 편합니다. 설치진행 전에 하나의 wallet을 준비해두세요${NC}"
+echo -e "${GREEN}새로운 DIIL 노드실행을 선택하세요.${NC}"
 while true; do
     read -p "$(echo -e "${YELLOW}원하는 작업을 선택하세요 [1. 새로운 dill 노드 실행 2. 기존 노드에 검증자 추가] [1]: ${NC}")" purpose
     purpose=${purpose:-1}  # 기본값으로 1 설정
@@ -133,9 +134,7 @@ DEPOSIT_FILE=$(find "$DIRECTORY" -type f -name "$FILE_PATTERN" | head -n 1)
 
 if [ -f "$DEPOSIT_FILE" ]; then
     echo -e "다음은 ${DEPOSIT_FILE} 파일의 내용입니다.(디파짓월렛):"
-    echo "--------------------------------------------"
     cat "$DEPOSIT_FILE"  # 파일 내용 출력
-    echo "--------------------------------------------"
     echo ""
     echo "위 내용을 모두 복사하세요."
     read -p "$(echo -e "모두 복사한 후 계속하려면 엔터를 누르세요: ${NC}")"
@@ -146,12 +145,16 @@ fi
 
 # 검증자 되기
 echo -e "${GREEN}검증자가 되는 작업을 시작합니다.${NC}"
-echo -e "${YELLOW}해당사이트에 접속하여 'Upload deposit data'에 위 내용을 모두 복사하여 붙여넣으세요.${NC}"
+echo -e "${YELLOW}해당사이트에 접속하여 'Upload deposit data'에 위에서 복사한 내용을 붙여넣으세요.${NC}"
 echo -e "${YELLOW}https://staking.dill.xyz/${NC}"
 read -p "$(echo -e "${GREEN}내용을 모두 넣으신 다음 다음을 누르세요: ${NC}")"
 
-echo -e "${YELLOW}설정한 wallet과 동일한 메타마스크를 사용하여 지갑을 연결하세요.${NC}"
-echo -e "${YELLOW}입급주소와 출금주소가 같다면 체크박스를 클릭하기만하여 확인만 하세요.${NC}"
+echo -e "${YELLOW}입금주소를 메타마스크에 불러와서 연결을 시작하세요.${NC}"
+echo -e "${YELLOW}입금주소는 노드를 설치할 때 새로 지갑을 만들 것인지 선택했던 단계의 지갑입니다.${NC}"
+echo -e "${YELLOW}출금주소는 노드를 설치할 때 출금 지갑주소를 입력했던 단계의 지갑입니다.${NC}"
+echo -e "${YELLOW}입급주소와 출금주소가 같다면 체크박스를 클릭하기만하여 확인만하세요.${NC}"
+echo -e "${YELLOW}입급주소와 출금주소가 다르다면 출금주소를 입력하세요.${NC}"
+read -p "$(echo -e "${GREEN}CONTINUE를 클릭하시고 엔터를 누르세요: ${NC}")"
 read -p "$(echo -e "${GREEN}SEND DEPOSIT을 클릭하시고 엔터를 누르세요: ${NC}")"
 
 echo -e "${GREEN}검증자 정보는 여기에서 확인할 수 있습니다: https://alps.dill.xyz/validators${NC}"
