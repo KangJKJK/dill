@@ -6,131 +6,138 @@ GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 NC='\033[0m' # No Color
 
-# 빈 줄 출력
-echo ""
+echo -e "${GREEN}Dill 노드 설치를 시작합니다.${NC}"
 
-echo -e "${GREEN}Nillion 노드 설치를 시작합니다.${NC}"
+# 파일 경로 설정
+FILE_PATH="/root/dill/validator_keys"
 
-# 사용자에게 명령어 결과를 강제로 보여주는 함수
-req() {
-  echo -e "${YELLOW}$1${NC}"
-  shift
-  "$@"
-  echo -e "${YELLOW}결과를 확인한 후 엔터를 눌러 계속 진행하세요.${NC}"
-  read -r
-}
+# 현재 디렉토리 설정
+_ROOT="$(pwd)" && cd "$(dirname "$0")" && ROOT="$(pwd)"
+PJROOT="$ROOT"
+DILL_DIR="$PJROOT/dill"
 
-# Docker가 설치되어 있는지 확인
-if ! command -v docker &> /dev/null; then
-    echo ""
-    echo "Docker가 설치되지 않았습니다. Docker를 설치 중..."
+# 기본값으로 다운로드 설정
+download=1
+if [ $# -ge 1 ]; then
+    download=$1
+fi
+
+version="v1.0.3"
+
+# dill 노드 실행 함수
+function launch_dill() {
     
-    # Docker 설치 명령어
-    sudo apt update && sudo apt install -y curl && \
-    curl -fsSL https://get.docker.com -o get-docker.sh && \
-    sudo sh get-docker.sh
+    # OS 종류 확인
+    os_type=$(uname)   # Darwin 또는 Linux 반환
+    chip=$(uname -m)
+    
+    # 파일 및 URL 정의
+    dill_darwin_file="dill-$version-darwin-arm64.tar.gz"
+    dill_linux_file="dill-$version-linux-amd64.tar.gz"
+    DILL_DARWIN_ARM64_URL="https://dill-release.s3.ap-southeast-1.amazonaws.com/$version/$dill_darwin_file"
+    DILL_LINUX_AMD64_URL="https://dill-release.s3.ap-southeast-1.amazonaws.com/$version/$dill_linux_file"
 
-    # Docker 그룹에 사용자 추가
-    sudo usermod -aG docker ${USER} && su - ${USER} -c "groups"
-else
-    echo ""
-    echo "Docker가 이미 설치되어 있습니다."
-fi
-
-# 'nillion' 디렉터리가 있는지 확인
-if [ -d "nillion" ]; then
-    echo ""
-    echo "'nillion' 디렉터리가 발견되었습니다. 제거 중..."
-    sudo rm -r "nillion"
-else
-    echo ""
-    echo "'nillion' 디렉터리가 없습니다."
-fi
-
-# 필요한 패키지 설치 (jq 및 bc)
-sudo apt update && sudo apt install -y jq bc
-
-# 현재 실행 중인 'nillion' 컨테이너 중지 및 제거
-echo ""
-echo "'nillion' 이름을 가진 실행 중인 컨테이너를 중지하고 제거 중..."
-sudo docker ps | grep nillion | awk '{print $1}' | xargs -r docker stop
-sudo docker ps -a | grep nillion | awk '{print $1}' | xargs -r docker rm
-
-# nillion Docker 이미지를 최신 버전으로 Pull
-echo ""
-echo "NILLION Docker 이미지를 Pull 중..."
-sudo docker pull nillion/retailtoken-accuser:latest
-
-# Docker 컨테이너를 실행하여 초기화 작업 수행
-echo ""
-echo "디렉터리를 생성하고 초기화를 위해 Docker 컨테이너 실행 중..."
-mkdir -p nillion/accuser && \
-sudo docker run -v "$(pwd)/nillion/accuser:/var/tmp" nillion/retailtoken-accuser:v1.0.1 initialise
-
-# credentials.json 파일 경로
-SECRET_FILE=~/nillion/accuser/credentials.json
-
-# credentials.json 파일이 존재하는지 확인
-if [ -f "$SECRET_FILE" ]; then
-    ADDRESS=$(jq -r '.address' "$SECRET_FILE")
-    echo ""
-    echo "이 주소로 Nillion 테스트넷 faucet을 요청하십시오: $ADDRESS"
-    echo "(https://faucet.testnet.nillion.com)"
-    echo ""
-
-    # faucet 요청 여부 확인
-    read -p "faucet을 요청하셨습니까? (계속하려면 y/Y 입력): " FAUCET_REQUESTED1
-    if [[ "$FAUCET_REQUESTED1" =~ ^[yY]$ ]]; then
-        echo ""
-        echo "이제 https://verifier.nillion.com/verifier를 방문하세요."
-        echo "새 Keplr 지갑을 연결하십시오."
-        echo "Nillion 주소로 faucet을 요청하십시오: https://faucet.testnet.nillion.com"
-        echo ""
-
-        # Keplr 지갑에 faucet을 요청했는지 확인
-        read -p "Keplr 지갑에 faucet을 요청하셨습니까? (계속하려면 y/Y 입력): " FAUCET_REQUESTED2
-        if [[ "$FAUCET_REQUESTED2" =~ ^[yY]$ ]]; then
-            # Keplr 지갑의 Nillion 주소 입력 요청
-            read -p "Keplr 지갑의 Nillion 주소를 입력하십시오: " KEPLR
-            echo ""
-            echo "다음 정보를 https://verifier.nillion.com/verifier 사이트에 입력하십시오."
-            echo "주소: $ADDRESS"
-            echo "공개 키: $(jq -r '.pub_key' "$SECRET_FILE")"
-            echo ""
-
-            # 정보를 제출했는지 확인
-            read -p "정보를 제출하셨습니까? (계속하려면 y/Y 입력): " address_submitted
-            if [[ "$address_submitted" =~ ^[yY]$ ]]; then
-                echo ""
-                echo "이 개인 키를 안전한 곳에 저장하십시오: $(jq -r '.priv_key' "$SECRET_FILE")"
-                echo ""
-
-                # 개인 키를 안전한 곳에 저장했는지 확인
-                read -p "개인 키를 안전한 곳에 저장하셨습니까? (계속하려면 y/Y 입력): " private_key_saved
-                if [[ "$private_key_saved" =~ ^[yY]$ ]]; then
-                    echo ""
-                    echo "accuse 명령으로 Docker 컨테이너를 실행 중..."
-                    sudo docker run -v "$(pwd)/nillion/accuser:/var/tmp" nillion/retailtoken-accuser:v1.0.1 accuse --rpc-endpoint "https://nillion-testnet.rpc.nodex.one" --block-start "$(curl -s "https://testnet-nillion-api.lavenderfive.com/cosmos/tx/v1beta1/txs?query=message.sender='$KEPLR'&pagination.limit=20&pagination.offset=0" | jq -r '[.tx_responses[] | select(.tx.body.memo == "AccusationRegistrationMessage")] | sort_by(.height | tonumber) | .[-1].height | tonumber - 5' | bc)"
-                else
-                    echo ""
-                    echo "개인 키를 안전한 곳에 저장한 후 다시 시도하십시오."
-                fi
-            else
-                echo ""
-                echo "제출을 완료한 후 다시 시도하십시오."
+    # macOS인지 확인
+    if [ "$os_type" == "Darwin" ]; then
+        if [ "$chip" == "arm64" ]; then
+            echo "지원됨, OS: $os_type, 칩: $chip"
+            if [ "$download" != "0" ]; then
+                curl -O $DILL_DARWIN_ARM64_URL
+                tar -zxvf $dill_darwin_file
             fi
         else
-            echo ""
-            echo "Keplr 지갑에 faucet을 요청한 후 다시 시도하십시오."
+            echo "지원되지 않음, OS: $os_type, 칩: $chip"
+            exit 1
         fi
     else
-        echo ""
-        echo "faucet을 요청한 후 다시 시도하십시오."
+        # Linux인지 확인
+        if [ "$chip" == "x86_64" ] && [ -f /etc/os-release ]; then
+            # CPU에 필요한 명령어 세트가 있는지 확인
+            if ! grep -qi "flags.*:.*adx" /proc/cpuinfo; then
+                echo "경고: CPU에 필요한 명령어 세트 확장이 없으며 정상적으로 실행되지 않을 수 있습니다."
+                echo "그래도 시도할 수 있습니다. 계속하려면 아무 키나 누르세요..."
+                read -n 1 -s -r
+            fi
+
+            # OS 정보 가져오기
+            source /etc/os-release
+            if [ "$ID" == "ubuntu" ]; then
+                major_version=$(echo $VERSION_ID | cut -d. -f1)
+                if [ $major_version -ge 20 ]; then
+                    echo "지원됨, OS: $ID $VERSION_ID, 칩: $chip"; echo ""
+                    if [ "$download" != "0" ]; then
+                        curl -O $DILL_LINUX_AMD64_URL
+                        tar -zxvf $dill_linux_file
+                    fi
+                else
+                    echo "지원되지 않음, OS: $ID $VERSION_ID (ubuntu 20.04+ 필요)"
+                    exit 1
+                fi
+            else
+                echo "지원되지 않음, OS: $os_type, 칩: $chip, $ID $VERSION_ID"
+                exit 1
+            fi
+        else
+            echo "지원되지 않음, OS: $os_type, 칩: $chip"
+            exit 1
+        fi
     fi
-else
+    
+    # dill 노드 실행 스크립트 호출
+    $DILL_DIR/1_launch_dill_node.sh
+}
+
+# 검증자 추가 함수
+function add_validator() {
+    $DILL_DIR/2_add_validator.sh
+}
+
+# 사용자에게 선택지 제공
+while true; do
+    read -p "원하는 작업을 선택하세요 [1, 새로운 dill 노드 실행, 2, 기존 노드에 검증자 추가] [1]: " purpose
+    purpose=${purpose:-1}  # 기본값으로 1 설정
+    case "$purpose" in
+        "1")
+            launch_dill
+            break
+            ;;
+        "2")
+            add_validator
+            break 
+            ;;
+        *)
+            echo ""
+            echo "[오류] $purpose 은(는) 유효한 옵션이 아닙니다."
+            ;;
+    esac
+done
+
+# Faucet 받기
+echo -e "${YELLOW}Galxe 퀘스트를 완료하여 Dsicord Role을 획득하세요${NC}"
+echo -e "${YELLOW}https://app.galxe.com/quest/Dill/GCgJAtvF1h?referral_code=GRFr2Jksp6m_3iKpJtfBbCz3bX1f64ar8En8fAfyI8cPWs9${NC}"
+read -p "${GREEN}Galxe 퀘스트를 완료하셨습니까? (계속하려면 엔터를 누르세요)"
+
+echo -e "${YELLOW}Dsicord 내부의 'alps'채널로 이동하여 Faucet을 받으세요${NC}"
+echo -e "${YELLOW}https://discord.gg/dill${NC}"
+read -p "${GREEN}Faucet을 받으셨으면 엔터를 누르세요"
+
+# 파일 내용 출력 및 안내문구 표시
+if [ -f "$FILE_PATH" ]; then
+    echo "다음은 $FILE_PATH 파일의 내용입니다:"
+    echo "--------------------------------------------"
+    cat "$FILE_PATH"  # 파일 내용 출력
+    echo "--------------------------------------------"
     echo ""
-    echo "credentials.json 파일이 없습니다. 초기화 과정이 성공적으로 완료되었는지 확인하십시오."
+    echo "위 내용을 모두 복사하세요."
+    read -p "모두 복사한 후, 계속하려면 엔터를 누르세요..."
+else
+    echo "파일을 찾을 수 없습니다: $FILE_PATH"
+    exit 1
 fi
+
+echo -e "${YELLOW}해당사이트에 접속하여 'Upload deposit data'에 위 내용을 모두 복사하여 붙여넣으세요.${NC}"
+echo -e "${YELLOW}https://staking.dill.xyz/${NC}"
+read -p "${GREEN}트랜잭션까지 진행한 후 엔터를 누르세요"
 
 echo -e "${GREEN}모든 작업이 완료되었습니다. 컨트롤+A+D로 스크린을 종료해주세요.${NC}"
 echo -e "${GREEN}스크립트 작성자: https://t.me/kjkresearch${NC}"
