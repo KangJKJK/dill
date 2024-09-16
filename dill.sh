@@ -8,9 +8,15 @@ NC='\033[0m' # No Color
 
 echo -e "${GREEN}Dill 노드 설치를 시작합니다.${NC}"
 
-# 파일 경로 설정
-DIRECTORY="/root/dill/validator_keys"
-FILE_PATTERN="deposit_data-*.json"
+# 'dil' 디렉터리가 있는지 확인
+if [ -d "dil" ]; then
+    echo ""
+    echo "'dil' 디렉터리가 발견되었습니다. 제거 중..."
+    sudo rm -r "dil"
+else
+    echo ""
+    echo "'dil' 디렉터리가 없습니다."
+fi
 
 # 현재 디렉토리 설정
 _ROOT="$(pwd)" && cd "$(dirname "$0")" && ROOT="$(pwd)"
@@ -115,6 +121,7 @@ while true; do
 done
 
 # Faucet 받기
+
 echo -e "${GREEN}Faucet 작업을 시작합니다.${NC}"
 echo -e "${YELLOW}Galxe 퀘스트를 완료하여 Dsicord Role을 획득하세요${NC}"
 echo -e "${YELLOW}https://app.galxe.com/quest/Dill/GCgJAtvF1h?referral_code=GRFr2Jksp6m_3iKpJtfBbCz3bX1f64ar8En8fAfyI8cPWs9${NC}"
@@ -125,6 +132,10 @@ echo -e "${YELLOW}https://discord.gg/dill${NC}"
 read -p "${GREEN}Faucet을 받으셨으면 엔터를 누르세요${NC}"
 
 # 파일 존재 여부 확인 및 출력
+
+DIRECTORY="/root/dill/validator_keys"
+FILE_PATTERN="deposit_data-*.json"
+
 if [ -f "$DEPOSIT_FILE" ]; then
     echo "다음은 $DEPOSIT_FILE 파일의 내용입니다.(디파짓월렛):"
     echo "--------------------------------------------"
