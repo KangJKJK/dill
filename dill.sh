@@ -8,14 +8,14 @@ NC='\033[0m' # No Color
 
 echo -e "${GREEN}Dill 노드 설치를 시작합니다.${NC}"
 
-# 'dil' 디렉터리가 있는지 확인
-if [ -d "dil" ]; then
+# 'dill' 디렉터리가 있는지 확인
+if [ -d "/root/dill" ]; then
     echo ""
-    echo "'dil' 디렉터리가 발견되었습니다. 제거 중..."
-    sudo rm -r "dil"
+    echo "'/root/dill' 디렉터리가 발견되었습니다. 제거 중..."
+    sudo rm -r "/root/dill"
 else
     echo ""
-    echo "'dil' 디렉터리가 없습니다."
+    echo "'/root/dill' 디렉터리가 없습니다."
 fi
 
 # 현재 디렉토리 설정
