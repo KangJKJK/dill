@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # 색깔 변수 정의
+BOLD='\033[1m'
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
@@ -11,11 +12,11 @@ echo -e "${GREEN}Dill 노드 설치를 시작합니다.${NC}"
 # 'dill' 디렉터리가 있는지 확인
 if [ -d "/root/dill" ]; then
     echo ""
-    echo "'/root/dill' 디렉터리가 발견되었습니다. 제거 중..."
+    echo "${BOLD}'/root/dill' 디렉터리가 발견되었습니다. 제거 중...${NC}"
     sudo rm -r "/root/dill"
 else
     echo ""
-    echo "'/root/dill' 디렉터리가 없습니다."
+    echo "${BOLD}'/root/dill' 디렉터리가 없습니다.${NC}"
 fi
 
 # 현재 디렉토리 설정
@@ -94,9 +95,9 @@ function add_validator() {
 
 # 사용자에게 선택지 제공
 echo -e "${RED}입금주소와 출금주소는 같아야 편합니다. 설치진행 전에 하나의 wallet을 준비해두세요${NC}"
-echo -e "${GREEN}새로운 DIIL 노드실행을 선택하세요.${NC}"
+echo -e "${BOLD}새로운 DIIL 노드실행을 선택하세요.${NC}"
 while true; do
-    read -p "$(echo -e "${YELLOW}원하는 작업을 선택하세요 [1. 새로운 dill 노드 실행 2. 기존 노드에 검증자 추가] [1]: ${NC}")" purpose
+    read -p "$(echo -e "${BOLD}원하는 작업을 선택하세요 [1. 새로운 dill 노드 실행 2. 기존 노드에 검증자 추가] [1]: ${NC}")" purpose
     purpose=${purpose:-1}  # 기본값으로 1 설정
     case "$purpose" in
         "1")
@@ -119,11 +120,11 @@ done
 echo -e "${GREEN}Faucet 작업을 시작합니다.${NC}"
 echo -e "${YELLOW}Galxe 퀘스트를 완료하여 Dsicord Role을 획득하세요${NC}"
 echo -e "${YELLOW}https://app.galxe.com/quest/Dill/GCgJAtvF1h?referral_code=GRFr2Jksp6m_3iKpJtfBbCz3bX1f64ar8En8fAfyI8cPWs9${NC}"
-read -p "$(echo -e "${GREEN}Galxe 퀘스트를 완료하셨습니까? (계속하려면 엔터를 누르세요): ${NC}")"
+read -p "$(echo -e "${BOLD}Galxe 퀘스트를 완료하셨습니까? (계속하려면 엔터를 누르세요): ${NC}")"
 
 echo -e "${YELLOW}Dsicord 내부의 'alps'채널로 이동하여 Faucet을 받으세요${NC}"
 echo -e "${YELLOW}https://discord.gg/dill${NC}"
-read -p "$(echo -e "${GREEN}Faucet을 받으셨으면 엔터를 누르세요: ${NC}")"
+read -p "$(echo -e "${BOLD}Faucet을 받으셨으면 엔터를 누르세요: ${NC}")"
 
 # 파일 존재 여부 확인 및 출력
 
@@ -137,7 +138,7 @@ if [ -f "$DEPOSIT_FILE" ]; then
     cat "$DEPOSIT_FILE"  # 파일 내용 출력
     echo ""
     echo "위 내용을 모두 복사하세요."
-    read -p "$(echo -e "모두 복사한 후 계속하려면 엔터를 누르세요: ${NC}")"
+    read -p "$(echo -e "${BOLD}모두 복사한 후 계속하려면 엔터를 누르세요: ${NC}")"
 else
     echo -e "${RED}해당 파일을 찾을 수 없습니다: ${FILE_PATTERN}${NC}"
     exit 1
@@ -147,15 +148,15 @@ fi
 echo -e "${GREEN}검증자가 되는 작업을 시작합니다.${NC}"
 echo -e "${YELLOW}해당사이트에 접속하여 'Upload deposit data'에 위에서 복사한 내용을 붙여넣으세요.${NC}"
 echo -e "${YELLOW}https://staking.dill.xyz/${NC}"
-read -p "$(echo -e "${GREEN}내용을 모두 넣으신 다음 다음을 누르세요: ${NC}")"
+read -p "$(echo -e "${BOLD}내용을 모두 넣으신 다음 다음을 누르세요: ${NC}")"
 
 echo -e "${YELLOW}입금주소를 메타마스크에 불러와서 연결을 시작하세요.${NC}"
 echo -e "${YELLOW}입금주소는 노드를 설치할 때 새로 지갑을 만들 것인지 선택했던 단계의 지갑입니다.${NC}"
 echo -e "${YELLOW}출금주소는 노드를 설치할 때 출금 지갑주소를 입력했던 단계의 지갑입니다.${NC}"
 echo -e "${YELLOW}입급주소와 출금주소가 같다면 체크박스를 클릭하기만하여 확인만하세요.${NC}"
 echo -e "${YELLOW}입급주소와 출금주소가 다르다면 출금주소를 입력하세요.${NC}"
-read -p "$(echo -e "${GREEN}CONTINUE를 클릭하시고 엔터를 누르세요: ${NC}")"
-read -p "$(echo -e "${GREEN}SEND DEPOSIT을 클릭하시고 엔터를 누르세요: ${NC}")"
+read -p "$(echo -e "${BOLD}CONTINUE를 클릭하시고 엔터를 누르세요: ${NC}")"
+read -p "$(echo -e "${BOLD}SEND DEPOSIT을 클릭하시고 엔터를 누르세요: ${NC}")"
 
 echo -e "${GREEN}검증자 정보는 여기에서 확인할 수 있습니다: https://alps.dill.xyz/validators${NC}"
 echo -e "${GREEN}모든 작업이 완료되었습니다. 컨트롤+A+D로 스크린을 종료해주세요.${NC}"
